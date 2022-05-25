@@ -1,0 +1,8 @@
+# module
+node_modules
+
+# env varieble
+.env.*
+
+#test code
+test*
