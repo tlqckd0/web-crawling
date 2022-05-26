@@ -2,9 +2,6 @@ const { crawler } = require('./crawler');
 const { post_list_object, comment_list_object } = require('./crawl_obejct');
 const puppeteer = require('puppeteer');
 
-require('dotenv').config({
-    path: '.env.crawl',
-});
 process.setMaxListeners(40);
 
 const processing = ({ page_num }) => {
@@ -50,15 +47,6 @@ const processing = ({ page_num }) => {
     });
 };
 
-// (async () => {
-//     const start = new Date();
-//     const res = await processing({ page_num: 2 });
-//     const end = new Date();
-//     res.forEach((value) => {
-//         console.log(value);
-//     });
-//     console.log((end - start) / 1000, '초');
-// })();
 
 module.exports = {
     processing,

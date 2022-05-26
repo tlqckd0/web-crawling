@@ -1,4 +1,5 @@
-const analytics_post = ({ post_data, recent_post_id }) => {
+
+const analytics_post = async  ({ post_data, recent_post_id }) => {
     // '/view/11415608712?page=2' 형식으로 들어온다.
     const post_id = post_data.href.split('/')[2].split('?')[0];
     //여기 POST는 작업이 완료되었다.

@@ -1,8 +1,9 @@
 const { processing } = require('./crawl/crawl_processing');
 const analytics_post = require('./analytics_post');
 require('dotenv').config({
-    path: '.env.crawl',
+    path: '.env.test',
 });
+
 async function main() {
     //중복 POST나오기 전까지 간다.
     let page_num = 2;
@@ -13,11 +14,11 @@ async function main() {
     //데이터 확인 로직
     const list_length = post_data_list.length;
     for (let i = 0; i < list_length; i++) {
-        const res = analytics_post({
+        const res = await analytics_post({
             post_data: post_data_list[i],
             recent_post_id,
         });
-
+        
         if (res === false || page_num === 10) {
             break;
         }

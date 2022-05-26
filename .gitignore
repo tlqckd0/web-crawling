@@ -2,7 +2,7 @@
 node_modules
 
 # env varieble
-.env.*
+.env*
 
 #test code
 test*
