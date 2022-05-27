@@ -7,10 +7,6 @@ const pool = mysql.createPool({
     connectionLimit: 5,
 });
 
-//테이블 있으면 넘어가고 OR 자동생성
-
-//transaction유지해야함.
-
 const getConnection = async () => {
     try {
         const conn = await pool.getConnection();
