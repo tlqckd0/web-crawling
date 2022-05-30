@@ -7,6 +7,7 @@ const pool = mysql.createPool({
     connectionLimit: 5,
 });
 
+
 const getConnection = async () => {
     try {
         const conn = await pool.getConnection();
@@ -25,7 +26,22 @@ const releaseConnection = async (conn) => {
     }
 };
 
+const connection_test = async()=>{
+    try{
+        console.log('connection pool test start');
+        const conn = await getConnection();
+        await conn.beginTransaction();
+        await conn.commit();
+        console.log('connection pool test end');
+        return true;
+    }catch(err){
+        console.log(err);
+        return false;
+    }
+}
+
 module.exports = {
+    connection_test,
     getConnection,
     releaseConnection,
 };

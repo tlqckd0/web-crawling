@@ -1,6 +1,10 @@
 const { getConnection, releaseConnection } = require('./index');
 
-const transaction = async (logic) => {
+/**
+ * @param {closure} logic
+ * @returns DB result
+ */
+const transactional_return = async (logic) => {
     let conn = null;
     try {
         conn = await getConnection();
@@ -24,6 +28,60 @@ const transaction = async (logic) => {
     }
 };
 
+/**
+ * @param {closure} logic
+ * @returns void
+ */
+const transactional_void = async (logic) => {
+    let conn = null;
+    try {
+        conn = await getConnection();
+        await conn.beginTransaction();
+        await logic(conn);
+        await conn.commit();
+    } catch (err) {
+        if (conn) {
+            conn.rollback();
+        }
+        throw err;
+    } finally {
+        if (conn) {
+            releaseConnection(conn);
+        }
+    }
+};
+
+const non_tranx_return = async (logic) => {
+    let conn = null;
+    try {
+        conn = await getConnection();
+        await logic(conn);
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn) {
+            releaseConnection(conn);
+        }
+    }
+};
+
+const non_tranx_void = async (logic) => {
+    let conn = null;
+    try {
+        conn = await getConnection();
+        await logic(conn);
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn) {
+            releaseConnection(conn);
+        }
+    }
+};
+
 module.exports = {
-    transaction,
+    transactional_return,
+    transactional_void,
+    non_tranx_return,
+    non_tranx_void,
 };

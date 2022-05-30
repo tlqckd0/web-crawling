@@ -5,7 +5,7 @@ const {
 
 const user_id_cache = {};
 
-const get_user_id = (nickname) => {
+const get_user_id = ({nickname}) => {
     return async (conn) => {
         try {
             if (user_id_cache[nickname]) {
