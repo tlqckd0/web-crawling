@@ -16,6 +16,8 @@ const crawler = ({ crawl_object, content }) => {
             }
         });
 
+        // -> 여기부터는 자율적 처리 
+
         if (crawl_object.type === 'post') {
             if (
                 return_data.counter === 'AD' ||
@@ -36,6 +38,7 @@ const crawler = ({ crawl_object, content }) => {
             result.push(return_data);
         }
     });
+
     return result;
 };
 

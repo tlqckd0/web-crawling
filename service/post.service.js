@@ -19,8 +19,8 @@ const get_latest_post_code = ()=>{
     return async(conn)=>{
         try{
             const latest_post = await find_latest_post_id(conn);
-            const post_id = latest_post[0].latest_post_id;
-            return post_id;
+            const latest_post_code = latest_post[0].post_code;
+            return latest_post_code;
         }catch(err){
             throw err;
         }

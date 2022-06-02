@@ -6,19 +6,15 @@ const {
     transactional_void,
 } = require('./database/transactionTemplate');
 
-const analytics_post = async ({ post_data, latest_post_code }) => {
+const comment_classify = require('./utils/comment_classify');
+
+const analytics_post = async ({ post_data }) => {
     try {
-        const post_code = post_data.href.split('/')[2].split('?')[0]; // '/view/11415608712?page=2' 형식으로 들어온다.
-
-        if (latest_post_code === post_code) {
-            return false;
-        }
-
+        const post_code = post_data.post_code;
         const post_writer = post_data.nick;
         const write_time = post_data.date;
-        console.log('POST : ', post_code, write_time, post_writer, '\n');
 
-        //저장한다.
+        //post를 저장한다.
         const post_writer_id = await transactional_return(
             get_user_id({ nickname: post_writer })
         );
@@ -26,67 +22,16 @@ const analytics_post = async ({ post_data, latest_post_code }) => {
             post({ user_id: post_writer_id, post_code, write_time })
         );
 
-        const save_comment_list = [];
-
-        for (let i = 0; i < post_data.comment.length - 1; i++) {
-            const comment_code = post_data.comment[i].id;
-            const comment_date = post_data.comment[i].date
-                .split(' ')[1]
-                .substring(0, 8);
-            const comment_writer = post_data.comment[i].nick;
-            const comment_info = post_data.comment[i].info;
-
-            if (
-                comment_info[1] === 'depth0' &&
-                post_writer !== comment_writer
-            ) {
-                //그냥 댓글을 쓴 경우. -> 자기자신이 쓴 경우 생략.
-                //중복 생략
-                if (
-                    save_comment_list.findIndex(
-                        (comment) => comment.comment_write === comment_writer
-                    ) === -1
-                ) {
-                    save_comment_list.push({
-                        comment_code,
-                        comment_date,
-                        comment_writer,
-                        reple: null,
-                    });
-                }
-            }
-
-            if (
-                comment_info[2] === 'depth1' &&
-                post_writer === comment_writer
-            ) {
-                //댓글에 답글을 달아주는 경우 -> post_writer가 답글 써준 경우만 취급.
-                //대대댓글 생략
-                const reple_code = comment_info[4].split('_')[1];
-                if (
-                    save_comment_list.findIndex(
-                        (comment) =>
-                            comment.comment_writer === comment_writer &&
-                            comment.reple === reple_code
-                    ) === -1
-                ) {
-                    save_comment_list.push({
-                        comment_code,
-                        comment_date,
-                        comment_writer,
-                        reple: reple_code,
-                    });
-                }
-            }
-        }
-        console.log(save_comment_list, '\n\n');
+        //post에 딸린 comment 분류작업
+        const comment_list = comment_classify({comment_list : post_data.comment, post_writer });
 
         //COMMENT를 일단 저장하고
         //거기에 맞는 code(VARCHAR) -> id(INT) mapping시켜줘서 REPLE저장해야함.
         const comment_code_cache = {};
-        for (let i = 0; i < save_comment_list.length; i++) {
+        for (let i = 0; i < comment_list.length; i++) {
             const { comment_code, comment_date, comment_writer, reple } =
-                save_comment_list[i];
+                comment_list[i];
+            if (comment_writer === '') continue;
             if (reple) continue;
             const comment_user_id = await transactional_return(
                 get_user_id({ nickname: comment_writer })
@@ -101,11 +46,12 @@ const analytics_post = async ({ post_data, latest_post_code }) => {
             );
             comment_code_cache[comment_code] = comment_id;
         }
-
-        for (let i = 0; i < save_comment_list.length; i++) {
+        //REPLE 작업
+        for (let i = 0; i < comment_list.length; i++) {
             const { comment_date, comment_code, comment_writer, reple } =
-                save_comment_list[i];
+                comment_list[i];
 
+            if (comment_writer === '') continue;
             if (reple && comment_code_cache[reple]) {
                 const reple_user_id = await transactional_return(
                     get_user_id({ nickname: comment_writer })

@@ -9,7 +9,6 @@ const get_user_id = ({nickname}) => {
     return async (conn) => {
         try {
             if (user_id_cache[nickname]) {
-                console.log(`use cache ${nickname}`);
                 return user_id_cache[nickname];
             }
 
