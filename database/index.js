@@ -35,7 +35,7 @@ const connection_test = async()=>{
         console.log('connection pool test end');
         return true;
     }catch(err){
-        console.log(err);
+        console.log('connection test error: ',err);
         return false;
     }
 }

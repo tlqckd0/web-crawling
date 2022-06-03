@@ -8,26 +8,12 @@ const {
 
 const comment_classify = require('./utils/comment_classify');
 
-const analytics_post = async ({ post_data }) => {
+async function save_comment({
+    comment_list,
+    comment_code_cache,
+    current_post_id,
+}) {
     try {
-        const post_code = post_data.post_code;
-        const post_writer = post_data.nick;
-        const write_time = post_data.date;
-
-        //post를 저장한다.
-        const post_writer_id = await transactional_return(
-            get_user_id({ nickname: post_writer })
-        );
-        const current_post_id = await transactional_return(
-            post({ user_id: post_writer_id, post_code, write_time })
-        );
-
-        //post에 딸린 comment 분류작업
-        const comment_list = comment_classify({comment_list : post_data.comment, post_writer });
-
-        //COMMENT를 일단 저장하고
-        //거기에 맞는 code(VARCHAR) -> id(INT) mapping시켜줘서 REPLE저장해야함.
-        const comment_code_cache = {};
         for (let i = 0; i < comment_list.length; i++) {
             const { comment_code, comment_date, comment_writer, reple } =
                 comment_list[i];
@@ -46,7 +32,18 @@ const analytics_post = async ({ post_data }) => {
             );
             comment_code_cache[comment_code] = comment_id;
         }
-        //REPLE 작업
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+async function save_reple({
+    comment_list,
+    comment_code_cache,
+    current_post_id,
+}) {
+    try {
         for (let i = 0; i < comment_list.length; i++) {
             const { comment_date, comment_code, comment_writer, reple } =
                 comment_list[i];
@@ -67,6 +64,47 @@ const analytics_post = async ({ post_data }) => {
                 );
             }
         }
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+const analytics_post = async ({ post_data }) => {
+    try {
+        const post_code = post_data.post_code;
+        const post_writer = post_data.nick;
+        const write_time = post_data.date;
+
+        //post를 저장한다.
+        const post_writer_id = await transactional_return(
+            get_user_id({ nickname: post_writer })
+        );
+        const current_post_id = await transactional_return(
+            post({ user_id: post_writer_id, post_code, write_time })
+        );
+
+        //post에 딸린 comment 분류작업
+        const comment_list = comment_classify({
+            comment_list: post_data.comment,
+            post_writer,
+        });
+
+        //COMMENT를 일단 저장하고
+        //거기에 맞는 code(VARCHAR) -> id(INT) mapping시켜줘서 REPLE저장해야함.
+        const comment_code_cache = {};
+
+        await save_comment({
+            comment_code_cache,
+            comment_list,
+            current_post_id,
+        });
+
+        await save_reple({
+            comment_code_cache,
+            comment_list,
+            current_post_id,
+        });
 
         return true;
     } catch (err) {
