@@ -1,6 +1,6 @@
 const SAVE_POST_SQL =
     'INSERT INTO post (user_id, post_code, time) VALUES (?,?,?)';
-const FIND_MAX_POST_ID_SQL = `SELECT post_code FROM post WHERE post_id = (SELECT MAX(post_Id) FROM post)`;
+const FIND_MAX_POST_ID_SQL = `SELECT post_code, time FROM post WHERE post_id = (SELECT MAX(post_Id) FROM post)`;
 
 const save_post = async (conn, { user_id, post_code, write_time }) => {
     try {
@@ -15,7 +15,7 @@ const save_post = async (conn, { user_id, post_code, write_time }) => {
     }
 };
 
-const find_latest_post_id = async (conn) => {
+const find_latest_post = async (conn) => {
     try {
         const [rows] = await conn.execute(FIND_MAX_POST_ID_SQL);
         return rows;
@@ -26,5 +26,5 @@ const find_latest_post_id = async (conn) => {
 
 module.exports = {
     save_post,
-    find_latest_post_id,
+    find_latest_post,
 };

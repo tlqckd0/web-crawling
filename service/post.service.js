@@ -1,6 +1,6 @@
 const {
     save_post,
-    find_latest_post_id
+    find_latest_post
 } = require('../repository/post.repository');
 
 const post = ({user_id, post_code, write_time})=>{
@@ -15,12 +15,15 @@ const post = ({user_id, post_code, write_time})=>{
     }
 }
 
-const get_latest_post_code = ()=>{
+const get_latest_post_data = ()=>{
     return async(conn)=>{
         try{
-            const latest_post = await find_latest_post_id(conn);
-            const latest_post_code = latest_post[0].post_code;
-            return latest_post_code;
+            const latest_post = await find_latest_post(conn);
+            const code = latest_post[0].post_code;
+            const time = latest_post[0].time;
+            return {
+                code, time
+            };
         }catch(err){
             throw err;
         }
@@ -29,5 +32,5 @@ const get_latest_post_code = ()=>{
 
 module.exports = {
     post,
-    get_latest_post_code
+    get_latest_post_data
 }

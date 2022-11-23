@@ -1,5 +1,5 @@
 const { transactional_return } = require('../database/transactionTemplate');
-const { get_latest_post_code } = require('../service/post.service');
+const { get_latest_post_data } = require('../service/post.service');
 const { processing } = require('../crawl/crawl_processing');
 
 module.exports = async () => {
@@ -7,7 +7,9 @@ module.exports = async () => {
     const post_data_list = [];
     let page_num = 2;
     let loop_flag = true;
-    let latest_post_code = await transactional_return(get_latest_post_code());
+    let latest_post_data = await transactional_return(get_latest_post_data());
+    console.log(latest_post_data)
+    let latest_post_code = latest_post_data.code;
     if (latest_post_code === null) latest_post_code = '';
     console.log('latest_post_code : ', latest_post_code);
 
